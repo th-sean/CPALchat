@@ -7,53 +7,60 @@ import LoadingDots from "../animation/loadingDots";
 import LottieAnimation from "../animation/lottie-animation";
 import documentlottie from "../../public/document-loading.json";
 
+// NOTE: move the instructions outside of `InputBoxComponent` or to the `config` folder.
+const Instruction = [
+  {
+    title: "Casual Conversation",
+    text: "Tell me a random fun fact about the Roman Empire.",
+  },
+  {
+    title: "Chat with your Documents",
+    text: "From my files, [your custom query]",
+  },
+  {
+    title: "Retrieve Specific Documents",
+    text: "Find me documents related to [Your Specific Detail]",
+  },
+  {
+    title: "On-the-Spot Info Fetch",
+    text: "What is the weather today in Irvine, CA?",
+  },
+];
+
 function InputBoxComponent({
   messageLength,
   inputText,
   setInputText,
   isSendChatLoading,
   isGetChatLoading,
-  handleClick,
-  handleRefresh,
+  onSendClick,
+  onRefresh,
 }) {
   const router = useRouter();
+  const { docId } = router.query;
+
+  // NOTE: move the placeholder out of JSX elements.
+  const inputPlaceHolder = isSendChatLoading ? "Wait a second...."  : "Type your message..."
+
   const messagesEndRef = useRef(null);
-  const Instruction = [
-    {
-      title: "Casual Conversation",
-      text: "Tell me a random fun fact about the Roman Empire.",
-    },
-    {
-      title: "Chat with your Documents",
-      text: "From my files, [your custom query]",
-    },
-    {
-      title: "Retrieve Specific Documents",
-      text: "Find me documents related to [Your Specific Detail]",
-    },
-    {
-      title: "On-the-Spot Info Fetch",
-      text: "What is the weather today in Irvine, CA?",
-    },
-  ];
+
   const handleEnter = (event) => {
     if (event.key === "Enter") {
       if (event.shiftKey) {
       } else {
         event.preventDefault();
-        handleClick();
+        onSendClick();
       }
     }
   };
-
-  const { docId } = router.query;
 
   const handleInputChange = (event) => {
     setInputText(event.target.value);
   };
 
-  const handleHandleInstruction = (itemText) => () => {
-    setInputText(itemText);
+  // NOTE: more clear naming
+  const handleFillInstruction = (instruction) => () => {
+    setInputText(instruction);
   };
   //   const messagesEndRef = useRef(null);
 
@@ -73,7 +80,7 @@ function InputBoxComponent({
                   <div
                     key={index}
                     className="border rounded-xl border-gray-300 p-5 text-xs hover:bg-gray-200"
-                    onClick={handleHandleInstruction(item.text)}
+                    onClick={handleFillInstruction(item.text)}
                   >
                     <div className="font-bold text-gray-700">{item.title}</div>
                     <div className="text-gray-400">{item.text}</div>
@@ -99,16 +106,8 @@ function InputBoxComponent({
               <div className="">
                 <textarea
                   rows="1"
-                  style={{
-                    "maxHeight?": "400px",
-                    height: "56px",
-                  }}
-                  className="block w-full text-gray-900 placeholder:text-gray-400 text-base font-normal resize-none outline-none px-4 py-4 rounded-t-lg focus:outline-none border-none bg-white z-5"
-                  placeholder={
-                    isSendChatLoading
-                      ? "Wait a second...."
-                      : "Type your message..."
-                  }
+                  className="height-14 max-h-[400px] block w-full text-gray-900 placeholder:text-gray-400 text-base font-normal resize-none outline-none px-4 py-4 rounded-t-lg focus:outline-none border-none bg-white z-5"
+                  placeholder={inputPlaceHolder}
                   value={inputText}
                   disabled={isSendChatLoading}
                   onChange={handleInputChange}
@@ -119,7 +118,7 @@ function InputBoxComponent({
                 <div className="flex-shrink-0 h-full px-2 py-1">
                   <button
                     className="transition-all duration-200 relative font-semibold shadow-sm rounded-md px-3 py-1.5 text-sm bg-blue-600 text-white ring-blue-600 active:ring-0 ring-0 hover:ring-0 outline-none hover:outline-none focus:outline-none border-0 h-full opacity-75"
-                    onClick={handleRefresh}
+                    onClick={onRefresh}
                   >
                     <FaTrashCan className="text-xl mx-1" />
                   </button>
@@ -132,13 +131,10 @@ function InputBoxComponent({
                     </span>
                   </div>
                   <button
-                    className={
-                      "transition-all duration-200 relative font-semibold rounded-md px-3 py-1.5 text-sm text-white ring-blue-600 active:ring-0 ring-0 hover:ring-0 outline-none hover:outline-none focus:outline-none border-0 h-full opacity-75" +
-                      (isSendChatLoading
-                        ? " opacity-40 text-white "
-                        : " bg-blue-600 text-white")
-                    }
-                    onClick={handleClick}
+                    className={classNames("transition-all duration-200 relative font-semibold rounded-md px-3 py-1.5 text-sm text-white ring-blue-600 active:ring-0 ring-0 hover:ring-0 outline-none hover:outline-none focus:outline-none border-0 h-full opacity-75", isSendChatLoading
+                      ? " opacity-40 text-white "
+                      : " bg-blue-600 text-white")}
+                    onClick={onSendClick}
                   >
                     {isSendChatLoading ? (
                       <LoadingDots className="text-black px-1 py-2" />

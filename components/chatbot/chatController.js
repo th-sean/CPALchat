@@ -25,13 +25,13 @@ import extractUsername from "../../utils/usernameExtractor";
 import Spinner from "../animation/spinner"
 
 function ChatController({
-  isSendChatLoading,
-  isGetChatLoading,
-  streamingResponse,
-  messages,
-  setInputText,
-  responseStatus,
-}) {
+                          isSendChatLoading,
+                          isGetChatLoading,
+                          streamingResponse,
+                          messages,
+                          setInputText,
+                          responseStatus,
+                        }) {
   const router = useRouter();
   const [user, setUser] = useSessionStorage("user", "");
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -137,6 +137,7 @@ function ChatController({
     }
   };
 
+  // NOTE: should be a single component file
   const renderBasedOnSource = (sourceStatus) => {
     switch (sourceStatus) {
       case "ChatGPT":
@@ -200,7 +201,7 @@ function ChatController({
           </div>
         );
       default:
-        return <></>;
+        return null;
     }
   };
   const handleInputChange = (event) => {
@@ -216,6 +217,7 @@ function ChatController({
     messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
+  // NOTE: move to utils/hooks
   async function getDownloadDocument(id) {
     console.log("this is id", id);
     if (!id) return;
@@ -244,6 +246,7 @@ function ChatController({
     }
   }
 
+  // NOTE: move to utils
   function markdownToHtml(str) {
     // Convert bold text
     str = str.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
@@ -259,10 +262,13 @@ function ChatController({
     return str;
   }
 
+  // NOTE: use the `useCallback` hooks to prevent re-render
   const downloadDocumentClick = (fileId) => {
     getDownloadDocument(fileId);
   };
 
+  // NOTE: move to utils/hooks
+  // NOTE: use the `useCallback` hooks to prevent re-render
   async function getDownloadDocument(id) {
     if (!id) return;
 
@@ -290,6 +296,7 @@ function ChatController({
     }
   }
 
+  // NOTE: use the `useCallback` hooks to prevent re-render
   async function summarizeDocumentClick(blockId, fileId, index) {
     console.log("this is blockId", blockId);
     console.log("this is fileId", fileId);
@@ -310,6 +317,7 @@ function ChatController({
     setSummaryLoading(false);
   }
 
+  // NOTE: move to utils/hooks
   const getSummary = async (id) => {
     const selectedId = id;
 
@@ -337,6 +345,7 @@ function ChatController({
     scrollToBottom;
   }, [messages]);
 
+  // NOTE: This component is too large, should split it.
   return (
     <>
       <div className="w-full">
@@ -358,6 +367,7 @@ function ChatController({
                   let displayMessage = item.message;
 
                   return item.sender == "human" ? (
+                    // NOTE: abstract a single component file
                     <div className="">
                       <div className="m-auto max-w-3xl p-5">
                         <div className="bg-white flex" key={blockId}>
@@ -380,6 +390,7 @@ function ChatController({
                       </div>
                     </div>
                   ) : (
+                    // NOTE: abstract a single component file
                     <div className="">
                       <div className="m-auto max-w-3xl p-5">
                         <div className="flex" key={blockId}>
@@ -396,7 +407,7 @@ function ChatController({
                                 __html: markdownToHtml(item.message),
                               }}
                             ></div>
-
+                            {/* NOTE: move the condition out of the JSX elements*/}
                             {item.sender === "ai" &&
                             (item.source === "Document_QA_System" ||
                               item.source === "Document_Display") ? (
@@ -407,73 +418,74 @@ function ChatController({
                                 <div className="flex text-xs mt-2 items-center w-full">
                                   <table className="min-w-full divide-y divide-gray-200 outline outline-1 outline-gray-200 rounded-md">
                                     <thead>
-                                      <tr>
-                                        <th className="px-4 py-2">Filename</th>
-                                        <th className="px-4 py-2 ">Actions</th>
-                                      </tr>
+                                    <tr>
+                                      <th className="px-4 py-2">Filename</th>
+                                      <th className="px-4 py-2 ">Actions</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                      {item.relevant_files &&
-                                        item.relevant_files.map(
-                                          (item, index) => (
-                                            <React.Fragment key={index}>
-                                              <tr key={index}>
-                                                <td className="px-4 py-2">
-                                                  {item.file_name}
-                                                </td>
-                                                <td className="flex px-4 py-2 items-center justify-center">
-                                                  <button
-                                                    onClick={() =>
-                                                      downloadDocumentClick(
-                                                        item.file_id
-                                                      )
-                                                    }
-                                                    className="relative transform transition-transform hover:scale-105 active:scale-95 px-2"
-                                                  >
-                                                    <div className="relative group">
+                                    {item.relevant_files &&
+                                      item.relevant_files.map(
+                                        (item, index) => (
+                                          <React.Fragment key={index}>
+                                            <tr key={index}>
+                                              <td className="px-4 py-2">
+                                                {item.file_name}
+                                              </td>
+                                              <td className="flex px-4 py-2 items-center justify-center">
+                                                <button
+                                                  onClick={() =>
+                                                    downloadDocumentClick(
+                                                      item.file_id
+                                                    )
+                                                  }
+                                                  className="relative transform transition-transform hover:scale-105 active:scale-95 px-2"
+                                                >
+                                                  <div className="relative group">
                                                       <PiDownloadSimpleDuotone />
-                                                    </div>
-                                                  </button>
-                                                  <button
-                                                    onClick={() =>
-                                                      summarizeDocumentClick(
-                                                        blockId,
-                                                        item.file_id,
-                                                        index
-                                                      )
-                                                    }
-                                                    className="px-2"
-                                                  >
-                                                    <div className="relative group">
+                                                  </div>
+                                                </button>
+                                                <button
+                                                  onClick={() =>
+                                                    summarizeDocumentClick(
+                                                      blockId,
+                                                      item.file_id,
+                                                      index
+                                                    )
+                                                  }
+                                                  className="px-2"
+                                                >
+                                                  <div className="relative group">
                                                       <PiQueueDuotone />
-                                                    </div>
-                                                  </button>
-                                                </td>
-                                              </tr>
-                                              {expandedBlock.blockId ===
-                                                blockId &&
-                                                expandedBlock.index ===
-                                                  index && (
-                                                  <tr>
-                                                    <td
-                                                      colSpan="2"
-                                                      className="px-4 py-2"
-                                                    >
-                                                      {/* Display the summary data here */}
-                                                      {summaryData}
-                                                    </td>
-                                                  </tr>
-                                                )}
-                                            </React.Fragment>
-                                          )
-                                        )}
+                                                  </div>
+                                                </button>
+                                              </td>
+                                            </tr>
+                                            {expandedBlock.blockId ===
+                                              blockId &&
+                                              expandedBlock.index ===
+                                              index && (
+                                                <tr>
+                                                  <td
+                                                    colSpan="2"
+                                                    className="px-4 py-2"
+                                                  >
+                                                    {/* Display the summary data here */}
+                                                    {summaryData}
+                                                  </td>
+                                                </tr>
+                                              )}
+                                          </React.Fragment>
+                                        )
+                                      )}
                                     </tbody>
                                   </table>
                                 </div>
                               </div>
+                              //   NOTE: move the condition out of the JSX
                             ) : item.sender === "ai" &&
-                              (item.source === "ChatGPT" ||
-                                item.source === "Google_Search") ? (
+                            (item.source === "ChatGPT" ||
+                              item.source === "Google_Search") ? (
                               <>
                                 <div className="">
                                   {renderBasedOnSource(item.source)}
@@ -527,6 +539,7 @@ function ChatController({
           )}
           <div>
             {isSendChatLoading ? (
+              // NOTE: abstract to a single component
               <div className="">
                 <div className="m-auto max-w-3xl">
                   <div className=" p-5 flex ">

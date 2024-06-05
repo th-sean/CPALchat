@@ -18,7 +18,7 @@ function ChatDrawer({}) {
   const router = useRouter(); // Get the router object
   const currentChatId = useChatInfoStore((state) => state.currentChatId);
   const setChatArray = useChatInfoStore((state) => state.setChatArray);
-  
+
 
   useEffect(() => {
     getChatList();
@@ -26,6 +26,7 @@ function ChatDrawer({}) {
     setUserTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
+  // NOTE: abstract to utils/hooks
   async function getChatList() {
     try {
       console.log("Function :getChatList");
@@ -41,6 +42,7 @@ function ChatDrawer({}) {
     }
   }
 
+  // NOTE: abstract to utils/hooks
   async function postDeleteChat(id) {
     setisDeleteChatLoading(true);
     try {
@@ -60,11 +62,12 @@ function ChatDrawer({}) {
       return -1;
     } finally {
       router.push(`/chatbot`, undefined, { shallow: true });
-      
+
       setisDeleteChatLoading(false);
     }
   }
 
+  // NOTE: abstract to utils/hooks
   async function getNewChatId() {
     try {
       console.log("Function : getNewChatId ");
@@ -97,6 +100,7 @@ function ChatDrawer({}) {
     setSelectedChatId(id);
   }
 
+  // NOTE: abstract to utils/hooks
   const groupedChats = useMemo(() => {
     const today = [];
     const yesterday = [];

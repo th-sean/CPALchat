@@ -58,19 +58,25 @@ function Controller() {
     };
   }, [chatId, savedChatId, isSendChatLoading]);
 
-  const sendMessageClick = async () => {
+  const handleSendMessageClick = async () => {
     console.log("chekcing: ", isSendChatLoading);
     setIsSendChatLoading(true);
     const currentInputText = inputText;
-    let chatId = router.query.id;
     setStreamingResponse("");
     setInputText("");
 
+    let chatId = router.query.id;
+
     if (!chatId) {
       console.log("ChatId not found");
-      await setNewChatId();
+      try {
+       //  NOTE: should replace the path with new chatId.
+       const newId = await setNewChatId();
+       router.replace(`/chat/${newId}`)
+      } catch (e) {
+        console.log(e)
+      }
 
-      chatId = router.query.id;
     }
 
     if (chatId) {
@@ -78,6 +84,8 @@ function Controller() {
     }
   };
 
+  // NOTE: Consider abstracting a utility function to handle both the response and request in a single file.
+  // Example: const data = await request.get(url)
   const getSourceStatus = async () => {
     let chatId = router.query.id;
     try {
@@ -107,6 +115,11 @@ function Controller() {
     const encodeURIInputText = encodeURIComponent(messageText);
     console.log("THis is frontend encodeURIInputText", encodeURIInputText);
 
+    // NOTE: if the client does not have the id in the beginning:
+    // 1. frontend request `/api/chain/${clientId}/?message=${encodedMessage}`
+    // 2. the API service (backend) create a record and generate the chatId
+    // 3. backend return the record with chatId to the frontend
+    // 4. frontend request `/api/chain/${clientId}/${chatId}/?message=${encodedMessage}` to continue to send message
     try {
       const response = await fetch(
         `/api/chain/${chatId}/${clientId}/?message=${encodeURIComponent(
@@ -127,7 +140,7 @@ function Controller() {
       const reader = response.body.getReader();
 
       let accumulatedResponse = "";
-
+      // NOTE: Can abstract this logic to `utils`
       reader.read().then(async function process({ done, value }) {
         if (done) {
           let sourceStatus = await getSourceStatus();
@@ -155,7 +168,7 @@ function Controller() {
             source: sourceStatus,
           };
 
-          getChatTitle(chatId);
+          getChatTitleById(chatId);
           console.log("this is finalBot Message", finalBotMessage);
           addChatArray(finalBotMessage);
           setIsSendChatLoading(false);
@@ -201,6 +214,7 @@ function Controller() {
     }
   };
 
+  // NOTE: abstract to utils
   async function getChatStatus(chatId) {
     try {
       const response = await axios.get(
@@ -218,6 +232,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   async function displayRelevantFile(chatId, inputText, aiResponse) {
     let clientId = currentClient.uuid;
     const body = {
@@ -251,6 +266,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   async function getRelevantFile(chatId, inputText, aiResponse) {
     let clientId = currentClient.uuid;
     console.log("getRelevantFile");
@@ -284,6 +300,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   async function getChatMessages(chatId) {
     setIsGetChatLoading(true);
     console.log("setIsGetChatLoading : true");
@@ -309,6 +326,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   async function setNewChatId() {
     //when first time open the chatbot
     try {
@@ -329,6 +347,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   async function getChatTitle(id) {
     try {
       console.log("Function : UpdateChatTitle ");
@@ -347,6 +366,7 @@ function Controller() {
     }
   }
 
+  // NOTE: abstract to utils or hooks
   const handleRefresh = async () => {
     const response = await axios.get("/api/chatbot/getClearChatHistory", {
       headers: {
@@ -384,8 +404,8 @@ function Controller() {
           setInputText={setInputText}
           isSendChatLoading={isSendChatLoading}
           isGetChatLoading={isGetChatLoading}
-          handleClick={sendMessageClick}
-          handleRefresh={handleRefresh}
+          onSendClick={handleSendMessageClick}
+          onRefresh={handleRefresh}
         />
       </div>
     </div>
