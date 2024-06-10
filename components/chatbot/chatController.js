@@ -53,6 +53,9 @@ function ChatController({
     }
   }, []);
 
+  /**
+   * @comment split it to another component file
+   */
   const renderBasedOnResponseStatus = (status) => {
     console.log("renderBasedOnResponseStatus", status);
     switch (status[0]) {
@@ -137,6 +140,9 @@ function ChatController({
     }
   };
 
+  /**
+   * @comment split it to another component file
+   */
   const renderBasedOnSource = (sourceStatus) => {
     switch (sourceStatus) {
       case "ChatGPT":
@@ -200,9 +206,13 @@ function ChatController({
           </div>
         );
       default:
-        return <></>;
+        /**
+         * @comment return null instead of `<></>`
+         */
+        return null;
     }
   };
+
   const handleInputChange = (event) => {
     setInputText(event.target.value);
   };
@@ -508,7 +518,10 @@ function ChatController({
                                 </div>
                               </>
                             ) : (
-                              <></>
+                              /**
+                               * @comment return null instead of `<></>`
+                               */
+                              null
                             )}
                             <div>
                               <time className="text-xs opacity-50">
@@ -552,7 +565,10 @@ function ChatController({
                 </div>
               </div>
             ) : (
-              <></>
+              /**
+               * @comment return null instead of `<></>`
+               */
+              null
             )}
           </div>
         </div>

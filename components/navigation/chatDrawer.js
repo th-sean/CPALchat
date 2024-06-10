@@ -13,12 +13,15 @@ function ChatDrawer({}) {
   const [userTimeZone, setUserTimeZone] = useState(null);
   const [chatList, setChatList] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const [isDeleteChatLoading, setisDeleteChatLoading] = useState(false);
+  /**
+   * @comment update spell check
+   */
+  const [isDeleteChatLoading, setIsDeleteChatLoading] = useState(false);
   const [accessToken] = useSessionStorage("accessToken", "");
   const router = useRouter(); // Get the router object
   const currentChatId = useChatInfoStore((state) => state.currentChatId);
   const setChatArray = useChatInfoStore((state) => state.setChatArray);
-  
+
 
   useEffect(() => {
     getChatList();
@@ -26,6 +29,11 @@ function ChatDrawer({}) {
     setUserTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
   }, []);
 
+  /**
+   * @comment Split this method into another two files
+   * put axios call into service/getChatList.js
+   * put the hooks update into hooks/useChatList.js, ant call the `service/getChatList.js` inside.
+   */
   async function getChatList() {
     try {
       console.log("Function :getChatList");
@@ -41,8 +49,12 @@ function ChatDrawer({}) {
     }
   }
 
+  /**
+   * @comment Split this method into another two files
+   * same as the `getChatList` function
+   */
   async function postDeleteChat(id) {
-    setisDeleteChatLoading(true);
+    setIsDeleteChatLoading(true);
     try {
       console.log("Function : getNewChatId ", id);
       const response = await axios.post(
@@ -61,10 +73,14 @@ function ChatDrawer({}) {
     } finally {
       router.push(`/chatbot`, undefined, { shallow: true });
       
-      setisDeleteChatLoading(false);
+      setIsDeleteChatLoading(false);
     }
   }
 
+  /**
+   * @comment Split this method into another two files
+   * same as the `getChatList` function
+   */
   async function getNewChatId() {
     try {
       console.log("Function : getNewChatId ");

@@ -26,17 +26,6 @@ function Controller() {
   const chatId = router.query.id;
 
   useEffect(() => {
-    let intervalId;
-    if (isSendChatLoading) {
-      //when you send a message
-
-      intervalId = setInterval(async () => {
-        if (chatId) {
-          let chatStatus = await getChatStatus(chatId);
-          setResponseStatus(chatStatus);
-        }
-      }, 1000);
-    }
     if (savedChatId !== chatId && chatId) {
       //when you switch to another chat
       console.log("tab swtiched");
@@ -51,13 +40,33 @@ function Controller() {
     }
 
     console.log("chat list", chatArray);
+  }, [chatId, savedChatId]);
+
+  useEffect(() => {
+    let intervalId;
+    if (isSendChatLoading) {
+      //when you send a message
+
+      intervalId = setInterval(async () => {
+        if (chatId) {
+          let chatStatus = await getChatStatus(chatId);
+          setResponseStatus(chatStatus);
+        }
+      }, 1000);
+    }
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
     };
-  }, [chatId, savedChatId, isSendChatLoading]);
+  }, [isSendChatLoading])
 
+  /**
+   * @comment
+   * 1. if there is no chatId, it will call `createNewChatId` to create a new chatId,
+   * 2. then use this chatId to send the chatbot;
+   */
   const sendMessageClick = async () => {
     console.log("chekcing: ", isSendChatLoading);
     setIsSendChatLoading(true);
@@ -68,13 +77,13 @@ function Controller() {
 
     if (!chatId) {
       console.log("ChatId not found");
-      await setNewChatId();
+      chatId = await createNewChatId();
 
-      chatId = router.query.id;
+      // chatId = router.query.id;
     }
 
     if (chatId) {
-      sendMessageGivenChatId(currentInputText);
+      sendMessageGivenChatId(currentInputText, chatId);
     }
   };
 
@@ -97,9 +106,16 @@ function Controller() {
     }
   };
 
-  const sendMessageGivenChatId = async (messageText) => {
-    let chatId = router.query.id;
-    let clientId = currentClient.uuid
+  /**
+   * @comment
+   * 1. now it receives two parameters: messageText amd chatId, now this method query
+   * 2. separate this method into two part:
+   *  2.1 put the fetch method into `service/sendMessageGivenChatId.js`;
+   *  2.2 other method call like `addChatArray` still keep in this method;
+   */
+  const sendMessageGivenChatId = async (messageText, chatId) => {
+    // let chatId = router.query.id;
+    const clientId = currentClient.uuid
     console.log("In progress: sendMessageGivenChatId");
     const sendTime = moment().format("h:mm");
     const myMessage = { sender: "human", message: messageText, time: sendTime };
@@ -164,7 +180,7 @@ function Controller() {
           return;
         }
 
-        let decodedValue = new TextDecoder("utf-8").decode(value);
+        const decodedValue = new TextDecoder("utf-8").decode(value);
         // // Check for "disp:" only if not already detected
         // console.log("this is devoded value", decodedValue);
         // if (!isDispDetected && decodedValue.startsWith("disp: ")) {
@@ -174,7 +190,7 @@ function Controller() {
         //   isDispDetected = true;
         //   return reader.read().then(process); // Skip further processing for this chunk and continue reading
         // }
-        let processedValues = decodedValue.split("data: ");
+        const processedValues = decodedValue.split("data: ");
 
         for (let val of processedValues) {
           console.log("this is val", val);
@@ -201,6 +217,9 @@ function Controller() {
     }
   };
 
+  /**
+   * @comment put this method into another file: `service/getCheckStatus.js`
+   */
   async function getChatStatus(chatId) {
     try {
       const response = await axios.get(
@@ -219,7 +238,7 @@ function Controller() {
   }
 
   async function displayRelevantFile(chatId, inputText, aiResponse) {
-    let clientId = currentClient.uuid;
+    const clientId = currentClient.uuid;
     const body = {
       chat_id: chatId,
       client_id: clientId,
@@ -238,10 +257,10 @@ function Controller() {
         }
       );
       if (response.status === 200) {
-        const releventFile = response.data;
-        console.log("Relevent file is : ", releventFile);
-        setFileObject(releventFile);
-        return releventFile;
+        const relevantFile = response.data;
+        console.log("Relevant file is : ", relevantFile);
+        setFileObject(relevantFile);
+        return relevantFile;
       }
     } catch (error) {
       return setFileObject({
@@ -251,8 +270,14 @@ function Controller() {
     }
   }
 
+  /**
+   * @comment
+   * 1. put this method into another file: `service/postCheckStatus.js`;
+   * 2. rename this method to `postRelevantFile`;
+   * 3. call the `service/postCheckStatus` in `controller` method and use hook `setFileObject` to update;
+   */
   async function getRelevantFile(chatId, inputText, aiResponse) {
-    let clientId = currentClient.uuid;
+    const clientId = currentClient.uuid;
     console.log("getRelevantFile");
     console.log("chatId", chatId);
     console.log("inputText", inputText);
@@ -271,10 +296,10 @@ function Controller() {
         },
       });
       if (response.status === 200) {
-        const releventFile = response.data;
-        console.log("Relevent file is : ", releventFile);
-        setFileObject(releventFile);
-        return releventFile;
+        const relevantFile = response.data;
+        console.log("Relevant file is : ", relevantFile);
+        setFileObject(relevantFile);
+        return relevantFile;
       }
     } catch (error) {
       return setFileObject({
@@ -284,6 +309,11 @@ function Controller() {
     }
   }
 
+  /**
+   * @comment
+   * 1. put this method into another file: `service/getChatMessages.js`;
+   * 2. consistent the return value of function whatever its success or fail;
+   */
   async function getChatMessages(chatId) {
     setIsGetChatLoading(true);
     console.log("setIsGetChatLoading : true");
@@ -309,10 +339,15 @@ function Controller() {
     }
   }
 
-  async function setNewChatId() {
+  /**
+   * @comment
+   * 1. Rename this method to `createNewChatId`;
+   * 2. Split this method into another file, called `service/createNewChatId.js`;
+   */
+  async function createNewChatId() {
     //when first time open the chatbot
     try {
-      console.log("chatid Not found running setNewChatId");
+      console.log("chatid Not found running createNewChatId");
       const response = await axios.get("/api/chatbot/postCreateNewChat", {
         headers: {
           Authorization: `Bearer ${accessToken || ""}`,
@@ -329,6 +364,12 @@ function Controller() {
     }
   }
 
+  /**
+   * @comment
+   * 1. put this method into `service/getChatTitle.js`, and it returns the update result;
+   * 2. this method and api name will make a mistake, its name starts `get`, but it call a post method,
+   *    it is not sure that this method wants to query chat title by id or update chat title;
+   */
   async function getChatTitle(id) {
     try {
       console.log("Function : UpdateChatTitle ");
@@ -347,6 +388,11 @@ function Controller() {
     }
   }
 
+   /**
+    * @comment
+    * put this method into `service/clearChatHistory.js`, and it returns the boolean value to
+    * represent its success or not;
+    */
   const handleRefresh = async () => {
     const response = await axios.get("/api/chatbot/getClearChatHistory", {
       headers: {

@@ -48,10 +48,16 @@ function InputBoxComponent({
 
   const { docId } = router.query;
 
+  /**
+   * @comment check the value if it's not empty string before update
+   */
   const handleInputChange = (event) => {
     setInputText(event.target.value);
   };
 
+  /**
+   * @comment check the value if it's not empty string before update
+   */
   const handleHandleInstruction = (itemText) => () => {
     setInputText(itemText);
   };
@@ -83,7 +89,10 @@ function InputBoxComponent({
             </div>
           ) : !isGetChatLoading ? (
             //Scroll to bottom button
-            <></>
+            /**
+             * @comment return null instead of `<></>`
+             */
+            null
           ) : (
             //document loading animation
             <LottieAnimation
