@@ -150,12 +150,18 @@ function Controller() {
           console.log("This is source status", sourceStatus);
           let fileData;
           if (sourceStatus == "Document_Display") {
+            /**
+             * @comment it didn't check the function value which is undefined or not
+             */
             fileData = await displayRelevantFile(
               chatId,
               inputText,
               accumulatedResponse
             );
           } else {
+            /**
+             * @comment it didn't check the function value which is undefined or not
+             */
             fileData = await getRelevantFile(
               chatId,
               inputText,
